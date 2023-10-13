@@ -1,19 +1,39 @@
+def count_pairs(numbers, target):
+    num_set = set()
+    pair_count = 0
+    
+    for num in numbers:
+        complement = target - num
+        if complement in num_set:
+            pair_count += 1
+            num_set.remove(complement)
+        else:
+            num_set.add(num)
+            
+    return pair_count
+
+import io
 import unittest
 
-def count_pairs(numbers, target):
-	num_set = set()
-	pair_count = 0
-	
-	for num in numbers:
-		complement = target - num
-		if complement in num_set:
-			pair_count += 1
-			# Remove the complement from set to ensure single use
-			num_set.remove(complement)
-		else:
-			num_set.add(num)
-			
-	return pair_count
+class CustomTextTestResult(unittest.TextTestResult):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.test_outcomes = []
+    
+    def addSuccess(self, test):
+        super().addSuccess(test)
+        self.test_outcomes.append({"test_name": str(test), "status": "Success"})
+    
+    def addFailure(self, test, err):
+        super().addFailure(test, err)
+        self.test_outcomes.append({"test_name": str(test), "status": "Failure"})
+        
+    def addError(self, test, err):
+        super().addError(test, err)
+        self.test_outcomes.append({"test_name": str(test), "status": "Error"})
+
+class CustomTextTestRunner(unittest.TextTestRunner):
+    resultclass = CustomTextTestResult
 
 class TestCountPairs(unittest.TestCase):
     
@@ -43,6 +63,11 @@ class TestCountPairs(unittest.TestCase):
         
     def test_list_with_multiple_valid_pairs_for_same_number(self):
         self.assertEqual(count_pairs([1, 2, 2, 1, 3], 3), 2)
-        
-# Run the unit tests
-unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestCountPairs))
+
+# Run the unit tests and capture the results
+stream = io.StringIO()
+runner = CustomTextTestRunner(stream=stream)
+result = runner.run(unittest.TestLoader().loadTestsFromTestCase(TestCountPairs))
+
+# Display the results
+result.test_outcomes
